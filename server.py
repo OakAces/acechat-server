@@ -11,9 +11,10 @@ users = dict()
 
 class Channel():
     '''the channel users speak in'''
-    def __init__(self):
+    def __init__(self, name):
         '''creates the list of users in the channel'''
         self.users = list()
+        self.name = name
 
     def send(self, obj):
         '''sends an object to all users in the channel'''
@@ -23,53 +24,25 @@ class Channel():
     def part(self, user):
         '''removes user from channel'''
         self.users.remove(user)
+        r = {"command": "PART",
+                "args": [user.username]
+        }
         for u in self.users:
-            #TODO notify users of part? Send message?
-            #leave = user, "has left chat"
-            #r = {"command": "MSG",
-                    #"args": [ leave]
-            #}
-            pass
-
-    def invite(self, users):
-        '''
-        sends args = [channel, user1, user2...] which
-        invites user[i] to join this channel
-        '''
-        args = [] * (len(users) + 1)
-        args[0] = self
-        for i in range(1, len(users)):
-            args[i] = i
-        r = {
-            "command": "chanList",
-            "args": args
-        }
-        self.send(r)
-
-    def chanList(self):
-        '''sends the list of channels to users'''
-        args = [] * len(channels)
-        for i in range(0, len(channels)):
-            args[i] = channels[i] #this is probably wrong, don't know how dicts work in python
-        r = {
-            "command": "chanList",
-            "args": args
-        }
-        self.send(r)
+            u.send(r)
 
 class User():
     '''The class for the user'''
     def __init__(self, sock):
         '''creates the default user obj with nothing'''
         self.username = None
-        self.channels = list()
+        self.channels = dict()
         self.data = bytes()
         self.sock = sock
 
     def send(self, obj):
         '''sends a timestamped message in JSON'''
         obj["timestamp"] = time.time()
-        data = json.dumps(obj)
+        data = json.dumps(obj) + "\n"
         data = data.encode("utf-8")
         self.sock.send(data)
 
@@ -102,7 +75,7 @@ class User():
         else:
             print('closing', conn)
             for chan in self.channels:
-                chan.part(self)
+                self.channels[chan].part(self)
             del users[self.username]
             sel.unregister(conn)
             conn.close()
@@ -159,7 +132,37 @@ class User():
             r = {"command": "ERROR",
                     "args": ["must specify username"]}
             self.send(r)
+        self.username = args[0]
         users[args[0]] = self
+
+    def cmd_invite(self, obj):
+        '''
+        invite users to channel
+        '''
+        args = obj["args"]
+        if len(args) < 2:
+            r = {"command": "ERROR",
+                    "args": ["must specify channel and at least one user"]}
+        elif not args[0] in self.channels:
+            r = {"command": "ERROR",
+                    "args": ["must be in channel to invite user to it"]}
+        else:
+            chan = args[0]
+            for u in args[1:]
+                r = {
+                    "user": self.username,
+                    "command": "INVITE",
+                    "args": [chan]
+                }
+                try:
+                    users[u].send(r)
+                except KeyError e:
+                    print("cannot invite non-existing user", e)
+
+    def cmd_chanlist(self, obj):
+        '''sends the list of channels to users'''
+        obj["args"] = list(channels.keys())
+        self.send(obj)
 
 
 def new_connection(sock, mask):
