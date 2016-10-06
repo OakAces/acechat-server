@@ -53,34 +53,34 @@ class Server:
 
     def process_cmd(self, user, obj):
         """Process a json object from a user"""
-        # TODO Validate USER command is set at the proper time
 
-        cmd = obj.get("command", None)
-
-        if not cmd:
-            #error out
-            pass
-
-        cmd_funcs = {
-                "USER": self.cmd_user,
-                "USERLIST": self.cmd_userlist,
-                "MSG": self.cmd_msg,
-                "PRIVMSG": self.cmd_privmsg,
-                "JOIN": self.cmd_join,
-                "PART": self.cmd_part,
-                "INVITE": self.cmd_invite,
-                "CHANLIST": self.cmd_chanlist,
-                }
-
-        f = cmd_funcs.get(cmd, None)
         try:
-            f(user, obj)
+            assert "command" in obj
+            assert isinstance(obj["command"], str)
+            assert "args" in obj
+            assert isinstance(obj["args"], list)
+            cmd = obj["command"]
+
+            cmd_funcs = {
+                    "USER": self.cmd_user,
+                    "USERLIST": self.cmd_userlist,
+                    "MSG": self.cmd_msg,
+                    "PRIVMSG": self.cmd_privmsg,
+                    "JOIN": self.cmd_join,
+                    "PART": self.cmd_part,
+                    "INVITE": self.cmd_invite,
+                    "CHANLIST": self.cmd_chanlist,
+                    }
+
+            f = cmd_funcs.get(cmd, None)
+            if f:
+                f(user, obj)
+            else:
+                self.error(user, "command %s does not exist" % cmd)
         except AssertionError e:
-            #error out
-            pass
+            self.error(user, "invalid message format")
 
 
-    # TODO cmd function bodies
     def cmd_user(self, user, obj):
         """Set username
         {
@@ -88,15 +88,15 @@ class Server:
             "args": ["username"]
         }
         """
+        assert len(obj["args"]) == 1
+        uname = obj["args"][0]
+        assert isinstance(uname, str)
 
         # Username can only be set once
         if not user.has_username():
-            #check validity of object
-            user.set_username(obj["args"][0])
-            pass
+            user.set_username(uname)
         else:
-            #TODO error out
-            pass
+            self.error(user, "can only set username once")
 
     def cmd_userlist(self, user, obj):
         """List all users on server
@@ -105,7 +105,6 @@ class Server:
             "args": []
         }
         """
-        #TODO check validity of message
 
         if user.has_username():
             args = [user.username for user in self.users]
@@ -116,8 +115,7 @@ class Server:
                     }
             self.send_obj(user, r)
         else:
-            #TODO error out
-            pass
+            self.error(user, "must set username first")
 
     def cmd_msg(self, user, obj):
         """Send a message to a channel
@@ -126,12 +124,12 @@ class Server:
             "args": ["channel", "message text goes here"]
         }
         """
-        #check validity of message
+        assert len(obj["args"]) == 2
+        chan = obj["args"][0]
+        msg = obj["args"][1]
+        assert isinstance(chan, str) and isinstance(msg, str)
 
         if user.has_username():
-            chan = obj["args"][0]
-            msg = obj["args"][1]
-
             r = {
                     "user": user.username,
                     "command": "MSG",
@@ -154,10 +152,12 @@ class Server:
         }
         """
         #check validity of message
+        assert len(obj["args"]) == 2
+        recpt = obj["args"][0]
+        msg = obj["args"][1]
+        assert isinstance(recpt, str) and isinstance(msg, str)
 
         if user.has_username():
-            recpt = obj["args"][0]
-            msg = obj["args"][1]
             r = {
                     "user": user.username,
                     "command": "PRIVMSG",
@@ -177,6 +177,7 @@ class Server:
             "args": ["channel1", "channel2", ...]
         }
         """
+        [assert isinstance(chan, str) for chan in obj["args"]]
 
         if user.has_username():
             for chan in obj["args"]:
@@ -186,6 +187,8 @@ class Server:
                 elif not (user in self.channels[chan]):
                     self.channels[chan].append(user)
                     #TODO send to all users in channel
+                else:
+                    self.error(user, "already in channel %s" % chan)
         else:
             #error out
             pass
@@ -197,11 +200,15 @@ class Server:
             "args": ["channel1", "channel2", ...]
         }
         """
+        [assert isinstance(chan, str) for chan in obj["args"]]
 
         if user.has_username():
-            #check validity of message
-            #remove user from a channel
-            pass
+            for chan in obj["args"]:
+                if user in self.channels[chan]:
+                    self.channels[chan].remove(user)
+                    #TODO send to all users in channel
+                else:
+                    self.error(user, "not in channel %s" % chan)
         else:
             #error out
             pass
@@ -213,11 +220,22 @@ class Server:
             "args": ["channel", "user1", "user2", ...]
         }
         """
+        [assert isinstance(s, str) for s in obj["args"]]
+        assert len(obj["args"]) > 1
+        chan = obj["args"][0]
+        users = obj["args"][1:]
 
         if user.has_username():
-            #check validity of message
-            #send invitation to a channel from user
-            pass
+            for u in users:
+                r = {
+                        "user": user.username,
+                        "command": "INVITE",
+                        "args": [chan]
+                        }
+                for i in self.users:
+                    if i.username == u:
+                        self.send_obj(r)
+
         else:
             #error out
             pass
@@ -231,9 +249,13 @@ class Server:
         """
 
         if user.has_username():
-            #check validity of message
             #send list of channels to user
-            pass
+            r = {
+                    "user": user.username,
+                    "command": "CHANLIST",
+                    "args": [i for i in self.channels]
+                    }
+            self.send_obj(user, r)
         else:
             #error out
             pass
