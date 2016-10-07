@@ -77,7 +77,7 @@ class Server:
                 f(user, obj)
             else:
                 self.error(user, "command %s does not exist" % cmd)
-        except AssertionError e:
+        except AssertionError as e:
             self.error(user, "invalid message format")
 
 
@@ -109,7 +109,7 @@ class Server:
         if user.has_username():
             args = [user.username for user in self.users]
             r = {
-                    "user": user.username
+                    "user": user.username,
                     "command": "USERLIST",
                     "args": args
                     }
@@ -177,7 +177,8 @@ class Server:
             "args": ["channel1", "channel2", ...]
         }
         """
-        [assert isinstance(chan, str) for chan in obj["args"]]
+        for i in [isinstance(chan, str) for chan in obj["args"]]:
+            assert i
 
         if user.has_username():
             for chan in obj["args"]:
@@ -200,7 +201,8 @@ class Server:
             "args": ["channel1", "channel2", ...]
         }
         """
-        [assert isinstance(chan, str) for chan in obj["args"]]
+        for i in [isinstance(chan, str) for chan in obj["args"]]:
+            assert i
 
         if user.has_username():
             for chan in obj["args"]:
@@ -220,7 +222,8 @@ class Server:
             "args": ["channel", "user1", "user2", ...]
         }
         """
-        [assert isinstance(s, str) for s in obj["args"]]
+        for i in [isinstance(chan, str) for chan in obj["args"]]:
+            assert i
         assert len(obj["args"]) > 1
         chan = obj["args"][0]
         users = obj["args"][1:]
