@@ -72,17 +72,33 @@ class Server:
         assert isinstance(uname, str)
 
         # Username can only be set once
-        #TODO: prevent user from setting username to be extremely long/do some checks on input
-        if not user.has_username():
-            user.set_username(uname)
-            r = {
-                "user": uname,
-                "command": "USER",
-                "args": [uname]
-            }
-            await self.send_obj(user, r)
-        else:
+        if user.has_username():
             await self.error(user, "can only set username once")
+            return
+        # Username must be unique
+        for u in self.users:
+            if u.username == uname:
+                await self.error(user, "that username is already set")
+                return
+
+        # Username must be 10 characters or less
+        if len(uname) > 10:
+            await self.error(user, "username can only be 10 characters or less")
+            return
+
+        # Username should be alphanumeric with dashes or underscores
+        valid = re.match('^[\w-_]+$', uname) is not None
+        if not valid:
+            await self.error(user, "username can only contain [a-zA-Z0-9_-]")
+            return
+
+        user.set_username(uname)
+        r = {
+            "user": uname,
+            "command": "USER",
+            "args": [uname]
+        }
+        await self.send_obj(user, r)
 
     async def cmd_userlist(self, user, obj):
         """List all users on server
