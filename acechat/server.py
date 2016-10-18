@@ -93,7 +93,7 @@ class Server:
             return
 
         # Username should be alphanumeric with dashes or underscores
-        valid = re.match('^[\w-_]+$', uname) is not None
+        valid = re.match('^[\w-]+$', uname) is not None
         if not valid:
             await self.error(user, "username can only contain [a-zA-Z0-9_-]")
             return
