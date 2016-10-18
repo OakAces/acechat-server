@@ -1,4 +1,10 @@
+.DS_Store
+*.pyc
+__pycache__
 .Python
 lib/
 bin/
 include/
+.dot
+.png
+pip-selfcheck.json

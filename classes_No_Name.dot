@@ -1,6 +1,0 @@
-digraph "classes_No_Name" {
-charset="utf-8"
-rankdir=BT
-"0" [label="{Server|addr\lchannels : dict\lport\lsel : KqueueSelector, EpollSelector, PollSelector, SelectSelector, DevpollSelector\lsock : socket\lusers : list\l|cmd_chanlist()\lcmd_invite()\lcmd_join()\lcmd_msg()\lcmd_part()\lcmd_privmsg()\lcmd_user()\lcmd_userlist()\lerror()\lnew_connection()\lprocess_cmd()\lrecv_data()\lsend_obj()\lserve_forever()\l}", shape="record"];
-"1" [label="{User|addr : str\lchannels : list\lconn\lusername : str\l|has_username()\l}", shape="record"];
-}
