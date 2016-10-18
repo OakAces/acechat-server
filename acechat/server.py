@@ -267,6 +267,7 @@ class Server:
 
     async def error(self, user, msg):
         """Send an error object to a user with msg"""
+        self.logger.warning("ERRROR: {}".format(msg))
         r = {"command": "ERROR", "args": [msg]}
         await self.send_obj(user, r)
 
