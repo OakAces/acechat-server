@@ -25,7 +25,7 @@ class Server:
             except websockets.exceptions.ConnectionClosed as e:
                 self.logger.info("{} connection closed".format("User:{}".format(user.username) if user.username else "anonymous user"))
                 return
-            self.logger.info("< {}".format(msg))
+            self.logger.info("<- {}".format(msg))
             obj = json.loads(msg)
             await self.process_cmd(user, obj)
 
@@ -258,6 +258,6 @@ class Server:
         """Add obj to user's write queue"""
         conn = user.conn
         data = json.dumps(obj)
-        self.logger.info("> {}".format(data))
+        self.logger.info("-> {}".format(data))
         await conn.send(data)
 
