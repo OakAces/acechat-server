@@ -40,6 +40,11 @@ class Server:
             assert isinstance(obj["args"], list)
             cmd = obj["command"]
 
+            if cmd != "USER":
+                if not user.has_username():
+                    await self.error(user, "Must set username before sending any other command")
+                    return
+
             cmd_funcs = {
                     "USER": self.cmd_user,
                     "USERLIST": self.cmd_userlist,
@@ -108,16 +113,13 @@ class Server:
         }
         """
 
-        if user.has_username():
-            args = [user.username for user in self.users]
-            r = {
-                    "user": user.username,
-                    "command": "USERLIST",
-                    "args": args
-                    }
-            await self.send_obj(user, r)
-        else:
-            await self.error(user, "must set username first")
+        args = [user.username for user in self.users]
+        r = {
+                "user": user.username,
+                "command": "USERLIST",
+                "args": args
+                }
+        await self.send_obj(user, r)
 
     async def cmd_msg(self, user, obj):
         """Send a message to a channel
@@ -131,19 +133,16 @@ class Server:
         msg = obj["args"][1]
         assert isinstance(chan, str) and isinstance(msg, str)
 
-        if user.has_username():
-            r = {
-                    "user": user.username,
-                    "command": "MSG",
-                    "args": [chan,msg]
-                    }
 
-            if user in self.channels[chan]:
-                for member in self.channels[chan]:
-                    await self.send_obj(member, r)
-        else:
-            #TODO error out
-            pass
+        r = {
+                "user": user.username,
+                "command": "MSG",
+                "args": [chan,msg]
+                }
+
+        if user in self.channels[chan]:
+            for member in self.channels[chan]:
+                await self.send_obj(member, r)
 
     async def cmd_privmsg(self, user, obj):
         """Send a private message to another user
@@ -158,18 +157,14 @@ class Server:
         msg = obj["args"][1]
         assert isinstance(recpt, str) and isinstance(msg, str)
 
-        if user.has_username():
-            r = {
-                    "user": user.username,
-                    "command": "PRIVMSG",
-                    "args": [recpt, msg]
-                    }
-            for user in users:
-                if user.username == recpt:
-                    await self.send_obj(user, r)
-        else:
-            #error out
-            pass
+        r = {
+                "user": user.username,
+                "command": "PRIVMSG",
+                "args": [recpt, msg]
+                }
+        for user in users:
+            if user.username == recpt:
+                await self.send_obj(user, r)
 
     async def cmd_join(self, user, obj):
         """Join user to a channel
@@ -181,19 +176,15 @@ class Server:
         for i in [isinstance(chan, str) for chan in obj["args"]]:
             assert i
 
-        if user.has_username():
-            for chan in obj["args"]:
-                if not (chan in self.channels):
-                    self.channels[chan] = [user]
-                    #TODO send to all users in channel
-                elif not (user in self.channels[chan]):
-                    self.channels[chan].append(user)
-                    #TODO send to all users in channel
-                else:
-                    await self.error(user, "already in channel %s" % chan)
-        else:
-            #error out
-            pass
+        for chan in obj["args"]:
+            if not (chan in self.channels):
+                self.channels[chan] = [user]
+                #TODO send to all users in channel
+            elif not (user in self.channels[chan]):
+                self.channels[chan].append(user)
+                #TODO send to all users in channel
+            else:
+                await self.error(user, "already in channel %s" % chan)
 
     async def cmd_part(self, user, obj):
         """Remove user from a channel
@@ -205,16 +196,12 @@ class Server:
         for i in [isinstance(chan, str) for chan in obj["args"]]:
             assert i
 
-        if user.has_username():
-            for chan in obj["args"]:
-                if user in self.channels[chan]:
-                    self.channels[chan].remove(user)
-                    #TODO send to all users in channel
-                else:
-                    await self.error(user, "not in channel %s" % chan)
-        else:
-            #error out
-            pass
+        for chan in obj["args"]:
+            if user in self.channels[chan]:
+                self.channels[chan].remove(user)
+                #TODO send to all users in channel
+            else:
+                await self.error(user, "not in channel %s" % chan)
 
     async def cmd_invite(self, user, obj):
         """Invite a user to channel
@@ -229,20 +216,15 @@ class Server:
         chan = obj["args"][0]
         users = obj["args"][1:]
 
-        if user.has_username():
-            for u in users:
-                r = {
-                        "user": user.username,
-                        "command": "INVITE",
-                        "args": [chan]
-                        }
-                for i in self.users:
-                    if i.username == u:
-                        await self.send_obj(r)
-
-        else:
-            #error out
-            pass
+        for u in users:
+            r = {
+                    "user": user.username,
+                    "command": "INVITE",
+                    "args": [chan]
+                    }
+            for i in self.users:
+                if i.username == u:
+                    await self.send_obj(r)
 
     async def cmd_chanlist(self, user, obj):
         """List all channels on server
@@ -252,18 +234,13 @@ class Server:
         }
         """
 
-        if user.has_username():
-            #send list of channels to user
-            r = {
-                    "user": user.username,
-                    "command": "CHANLIST",
-                    "args": [i for i in self.channels]
-                    }
-            await self.send_obj(user, r)
-        else:
-            #error out
-            pass
-
+        #send list of channels to user
+        r = {
+                "user": user.username,
+                "command": "CHANLIST",
+                "args": [i for i in self.channels]
+                }
+        await self.send_obj(user, r)
 
     async def error(self, user, msg):
         """Send an error object to a user with msg"""
