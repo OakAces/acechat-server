@@ -5,7 +5,7 @@ import websockets
 
 async def hello():
     async with websockets.connect('ws://localhost:9090') as websocket:
-        name = '{"commsand":"USER", "args":["dan"]}'
+        name = '{"command":"USER", "args":["dan"]}'
         await websocket.send(name)
         print("> {}".format(name))
 
