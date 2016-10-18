@@ -1,13 +1,17 @@
 import selectors
 import json
-from json.decoder import JSONDecodeError
 import socket
-
+import logging
+import websockets
+from json.decoder import JSONDecodeError
 from acechat.user import User
 
 class Server:
     def __init__(self):
         """Server class constructor"""
+        self.logger = logging.getLogger("acechat.server")
+        self.logger.info("Server starting")
+
         self.users = list()
         self.channels = dict()
         self.umap = dict()
@@ -16,8 +20,12 @@ class Server:
         user = User(ws, path)
         self.users.append(user)
         while True:
-            msg = await ws.recv()
-            print("< {}".format(msg))
+            try:
+                msg = await ws.recv()
+            except websockets.exceptions.ConnectionClosed as e:
+                self.logger.info("{} connection closed".format("User:{}".format(user.username) if user.username else "anonymous user"))
+                return
+            self.logger.info("< {}".format(msg))
             obj = json.loads(msg)
             await self.process_cmd(user, obj)
 
@@ -66,6 +74,12 @@ class Server:
         # Username can only be set once
         if not user.has_username():
             user.set_username(uname)
+            r = {
+                "user": uname,
+                "command": "USER",
+                "args": [uname]
+            }
+            await self.send_obj(user, r)
         else:
             await self.error(user, "can only set username once")
 
@@ -109,8 +123,7 @@ class Server:
 
             if user in self.channels[chan]:
                 for member in self.channels[chan]:
-                    if member.username != user.username:
-                        await self.send_obj(member, r)
+                    await self.send_obj(member, r)
         else:
             #TODO error out
             pass
@@ -244,5 +257,6 @@ class Server:
         """Add obj to user's write queue"""
         conn = user.conn
         data = json.dumps(obj)
+        self.logger.info("> {}".format(data))
         await conn.send(data)
 

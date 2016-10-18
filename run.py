@@ -3,9 +3,11 @@ import websockets
 import asyncio
 import logging
 
-logger = logging.getLogger('websockets.server')
-logger.setLevel(logging.ERROR)
-logger.addHandler(logging.StreamHandler())
+logging.basicConfig(level=logging.INFO)
+
+wslogger = logging.getLogger('websockets.server')
+wslogger.setLevel(logging.INFO)
+wslogger.addHandler(logging.StreamHandler())
 
 addr = "localhost"
 port = 9090
