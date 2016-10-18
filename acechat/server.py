@@ -3,6 +3,7 @@ import json
 import socket
 import logging
 import websockets
+import re
 from json.decoder import JSONDecodeError
 from acechat.user import User
 
