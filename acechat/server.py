@@ -72,6 +72,7 @@ class Server:
         assert isinstance(uname, str)
 
         # Username can only be set once
+        #TODO: prevent user from setting username to be extremely long/do some checks on input
         if not user.has_username():
             user.set_username(uname)
             r = {
