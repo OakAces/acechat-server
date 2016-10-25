@@ -24,23 +24,49 @@ class Server:
             try:
                 msg = await ws.recv()
             except websockets.exceptions.ConnectionClosed as e:
-                # remove from list of users
-                self.users.remove(user)
-
-                # remove user from every channel
-                for chan in self.channels:
-                    self.channels[chan].remove(user)
-
-                    # if channel is empty it is deleted
-                    if len(self.channels[chan] == 0):
-                        del self.channels[chan]
-
+                await self.disconnect_user(user)
                 self.logger.info("{} connection closed".format("User:{}".format(user.username) if user.username else "anonymous user"))
                 return
             self.logger.info("<- {}".format(msg))
             obj = json.loads(msg)
             await self.process_cmd(user, obj)
 
+    async def disconnect_user(self, user):
+        # remove from list of users
+        self.users.remove(user)
+        self.logger.info("{} removed from the user list".format(user.username))
+
+        # remove user from every channel
+        chans = list(self.channels)
+        for chan in chans:
+            if user in self.channels[chan]:
+                await self.part(user, chan)
+
+    async def part(self, user, chan):
+        # error if channel does not exist
+        if not chan in self.channels:
+            self.logger.info("{} tried to part {} that does not exist".format(user.username, chan))
+            await self.error(user, "that channel does not exist")
+            return
+
+        # remove user from channels
+        if user in self.channels[chan]:
+            self.channels[chan].remove(user)
+            self.logger.info("{} parted {}".format(user.username, chan))
+
+        # notify all users in chan
+        for member in self.channels[chan]:
+            r = {
+                    'user': user.username,
+                    'command': 'PART',
+                    'args': [chan]
+                    }
+            await self.send_obj(member, r)
+
+        # if channel is empty it is deleted
+        if len(self.channels[chan]) == 0:
+            del self.channels[chan]
+            self.logger.info("empty channel {} deleted".format(chan))
 
     async def process_cmd(self, user, obj):
         """Process a json object from a user"""
@@ -191,10 +217,22 @@ class Server:
         for chan in obj["args"]:
             if not (chan in self.channels):
                 self.channels[chan] = [user]
-                #TODO send to all users in channel
+                r = {
+                        "user": user.username,
+                        "command": 'JOIN',
+                        'args': [chan]
+                        }
+                for member in self.channels[chan]:
+                    await self.send_obj(member, r)
             elif not (user in self.channels[chan]):
                 self.channels[chan].append(user)
-                #TODO send to all users in channel
+                r = {
+                        "user": user.username,
+                        "command": 'JOIN',
+                        'args': [chan]
+                        }
+                for member in self.channels[chan]:
+                    await self.send_obj(member, r)
             else:
                 await self.error(user, "already in channel %s" % chan)
 
