@@ -24,6 +24,17 @@ class Server:
             try:
                 msg = await ws.recv()
             except websockets.exceptions.ConnectionClosed as e:
+                # remove from list of users
+                self.users.remove(user)
+
+                # remove user from every channel
+                for chan in self.channels:
+                    self.channels[chan].remove(user)
+
+                    # if channel is empty it is deleted
+                    if len(self.channels[chan] == 0):
+                        del self.channels[chan]
+
                 self.logger.info("{} connection closed".format("User:{}".format(user.username) if user.username else "anonymous user"))
                 return
             self.logger.info("<- {}".format(msg))
