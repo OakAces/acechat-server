@@ -26,7 +26,6 @@ class Server:
             except websockets.exceptions.ConnectionClosed as e:
                 # remove from list of users
                 self.users.remove(user)
-
                 # remove user from every channel
                 for chan in self.channels:
                     self.channels[chan].remove(user)
@@ -208,10 +207,16 @@ class Server:
         for i in [isinstance(chan, str) for chan in obj["args"]]:
             assert i
 
+        r = {
+            "user":user,
+            "args":[None, "%s has left the channel" % user]
+        }
+            
         for chan in obj["args"]:
             if user in self.channels[chan]:
                 self.channels[chan].remove(user)
-                #TODO send to all users in channel
+                r["args"][0] = self.channel
+                self.channels[chan].cmd_msg(self,user,r)
             else:
                 await self.error(user, "not in channel %s" % chan)
 
