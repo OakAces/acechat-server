@@ -215,7 +215,7 @@ class Server:
 
         for chan in obj["args"]:
             if user in self.channels[chan]:
-                r["args"].append(chan)
+                r["args"][0] = chan
                 for member in self.channels[chan]:
                     await self.send_obj(member,r)
                 self.channels[chan].remove(user)
