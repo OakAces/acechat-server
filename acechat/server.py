@@ -208,18 +208,21 @@ class Server:
             assert i
 
         r = {
-            "user":user,
-            "args":[None, "%s has left the channel" % user]
-        }
-            
+            "user":user.username
+            "command":"PART"
+            "args":[]
+        }    
+
         for chan in obj["args"]:
             if user in self.channels[chan]:
+                r["args"].append(chan)
+                for member in self.channels[chan]:
+                    await self.send_obj(member,r)
                 self.channels[chan].remove(user)
-                r["args"][0] = self.channel
-                self.channels[chan].cmd_msg(self,user,r)
             else:
                 await self.error(user, "not in channel %s" % chan)
-
+                
+                
     async def cmd_invite(self, user, obj):
         """Invite a user to channel
         {
