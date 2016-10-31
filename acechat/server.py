@@ -4,6 +4,7 @@ import socket
 import logging
 import websockets
 import re
+import time
 from json.decoder import JSONDecodeError
 from acechat.user import User
 
@@ -301,6 +302,7 @@ class Server:
     async def send_obj(self, user, obj):
         """Add obj to user's write queue"""
         conn = user.conn
+        obj["timestamp"] = time.time();
         data = json.dumps(obj)
         self.logger.info("-> {}".format(data))
         await conn.send(data)
