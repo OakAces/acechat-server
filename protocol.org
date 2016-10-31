@@ -1,0 +1,190 @@
+#+TITLE: Protocol Definition
+#+Author:
+
+* Overview
+
+** Client Actions
+
+   Clients will send messages to the server in the following format:
+
+#+BEGIN_SRC js
+  {
+      "command": "COMMANDNAME",
+      "args": ["arg1", "arg2"]
+  }
+#+END_SRC
+
+** Server Actions
+
+   Clients will receive messages from the server in the following
+   format:
+
+#+BEGIN_SRC js
+  {
+      "user": "username",
+      "command": "COMMANDNAME",
+      "args": ["arg1", "arg2"],
+      "timestamp": 1326439500 // Unix Timestamp
+  }
+#+END_SRC
+
+
+* WebSocket Protocol Definition
+
+** Client Actions
+
+*** Message Actions
+
+**** MSG - Send Message
+
+#+BEGIN_SRC js
+  {
+      "command": "MSG",
+      "args": ["channel", "message text goes here"]
+  }
+#+END_SRC
+
+**** PRIVMSG - Send Private Message
+
+#+BEGIN_SRC js
+  {
+      "command": "PRIVMSG",
+      "args": ["user", "message text"]
+  }
+#+END_SRC
+
+
+*** Channel Actions
+
+**** JOIN - Join Channel
+
+#+BEGIN_SRC js
+  {
+      "command": "JOIN",
+      "args": ["channel1", "channel2"] // any number of channels
+  }
+#+END_SRC
+
+**** PART - Leave Channel
+
+#+BEGIN_SRC js
+  {
+      "command": "PART",
+      "args": ["channel1", "channel2"]
+  }
+
+#+END_SRC
+
+**** INVITE - Invite User to Channel
+
+#+BEGIN_SRC js
+  {
+      "command": "INVITE",
+      "args": ["channel", "user1", "user2"] // any number of users
+  }
+#+END_SRC
+
+**** CHANLIST - List Channels on Server
+
+#+BEGIN_SRC js
+  {
+      "command": "CHANLIST",
+      "args": []
+  }
+
+#+END_SRC
+*** User Actions
+
+**** USER - Set Username
+
+#+BEGIN_SRC js
+  {
+      "command": "USER",
+      "args": ["username"]
+  }
+#+END_SRC
+
+**** USERLIST - List Users on Server
+#+BEGIN_SRC js
+  {
+      "command": "USERLIST",
+      "args": []
+  }
+#+END_SRC
+** Server Actions
+
+*** Message Actions
+
+**** MSG - Receive Message From a Channel
+#+BEGIN_SRC js
+  {
+      "user": "username",
+      "command": "MSG",
+      "args": ["channel", "message text goes here"]
+      "timestamp": 1326439500 // Unix Timestamp
+  }
+#+END_SRC
+
+**** PRIVMSG - Receive Message From User
+#+BEGIN_SRC js
+  {
+      "user": "username",
+      "command": "PRIVMSG",
+      "args" ["user", "message text"]
+      "timestamp": 1326439500 // unix timestamp
+  }
+#+END_SRC
+*** Channel Actions
+
+**** JOIN - Someone Joined the Channel
+
+#+BEGIN_SRC js
+  {
+      "user": "anthony",
+      "command": "JOIN",
+      // channel name and list of users
+      "args": ["channel", "user1", "user2"], 
+      "timestamp": 1326439500 // Unix Timestamp
+  }
+#+END_SRC
+
+**** PART - Someone Left the Channel
+
+#+BEGIN_SRC js
+  {
+      "user": "username",
+      "command": "PART",
+      // channel name and list of users
+      "args": ["channel", "user1", "user2"],
+      "timestamp": 1326439500 // Unix Timestamp
+  }
+
+#+END_SRC
+**** CHANLIST - Enumerate Channels on Server
+#+BEGIN_SRC js
+  {
+      "user": "",
+      "command": "CHANLIST",
+      "args": ["chan1", "chan2"] // all channels on server
+      "timestamp": 1326439500 // Unix Timestamp
+  }
+#+END_SRC
+
+*** USER Actions
+
+#+BEGIN_SRC js
+  {
+      "user": "",
+      "command": "USERLIST",
+      "args": ["user1", "user2"] // all users on server
+      "timestamp": 1326439500 // Unix Timestamp
+  }
+#+END_SRC
+
+*** ERROR
+#+BEGIN_SRC js
+  {
+      "command": "ERROR",
+      "args": ["error text"]
+  }
+#+END_SRC
