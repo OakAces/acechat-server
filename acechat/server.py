@@ -221,7 +221,7 @@ class Server:
                 r = {
                         "user": user.username,
                         "command": 'JOIN',
-                        'args': [chan]
+                        'args': [chan, user.username]
                         }
                 for member in self.channels[chan]:
                     await self.send_obj(member, r)
@@ -230,7 +230,7 @@ class Server:
                 r = {
                         "user": user.username,
                         "command": 'JOIN',
-                        'args': [chan]
+                        'args': [chan] + self.channels[chan]
                         }
                 for member in self.channels[chan]:
                     await self.send_obj(member, r)
@@ -250,7 +250,13 @@ class Server:
         for chan in obj["args"]:
             if user in self.channels[chan]:
                 self.channels[chan].remove(user)
-                #TODO send to all users in channel
+                r = {
+                    "user": user.username,
+                    "command": 'JOIN',
+                    'args': [chan] + self.channels[chan]
+                }
+                for member in self.channels[chan]:
+                    await self.send_obj(member, r)
             else:
                 await self.error(user, "not in channel %s" % chan)
 
