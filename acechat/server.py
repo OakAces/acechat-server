@@ -200,7 +200,7 @@ class Server:
                 "command": "PRIVMSG",
                 "args": [recpt, msg]
                 }
-        for user in users:
+        for user in self.users:
             if user.username == recpt:
                 await self.send_obj(user, r)
 
