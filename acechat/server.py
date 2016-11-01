@@ -43,7 +43,26 @@ class Server:
         chans = list(self.channels)
         for chan in chans:
             if user in self.channels[chan]:
-                await self.part(user, chan)
+                self.channels[chan].remove(user)
+                if len(self.channels[chan]) == 0:
+                    del self.channels[chan]
+                    r = {
+                        "user": user.username,
+                        "command": "CHANLIST",
+                        "args": [i for i in self.channels]
+                    }
+                    for u in self.users:
+                        await self.send_obj(u, r)
+
+        r = {
+            "user": user.username,
+            "command": "USERLIST",
+            "args": [u.username for u in self.users]
+        }
+        for u in self.users:
+            await self.send_obj(u, r)
+
+
 
     async def part(self, user, chan):
         # error if channel does not exist
