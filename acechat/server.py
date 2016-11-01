@@ -5,6 +5,7 @@ import logging
 import websockets
 import re
 import time
+import chalk
 from json.decoder import JSONDecodeError
 from acechat.user import User
 
@@ -28,7 +29,8 @@ class Server:
                 await self.disconnect_user(user)
                 self.logger.info("{} connection closed".format("User:{}".format(user.username) if user.username else "anonymous user"))
                 return
-            self.logger.info("<- {}".format(msg))
+            # self.logger.info("<- {}".format(msg))
+            chalk.red("<- {}".format(msg))
             obj = json.loads(msg)
             await self.process_cmd(user, obj)
 
@@ -310,6 +312,7 @@ class Server:
         conn = user.conn
         obj["timestamp"] = time.time();
         data = json.dumps(obj)
-        self.logger.info("-> {}".format(data))
+        # self.logger.info("-> {}".format(data))
+        chalk.green("-> {}".format(data))
         await conn.send(data)
 
