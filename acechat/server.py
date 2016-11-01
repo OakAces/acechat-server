@@ -53,7 +53,14 @@ class Server:
                     }
                     for u in self.users:
                         await self.send_obj(u, r)
-
+                else:
+                    r = {
+                        "user": user.username,
+                        "command": "PART",
+                        "args": [chan] + [u.username for u in self.channels[chan]]
+                    }
+                    for u in self.channels[chan]:
+                        await self.send_obj(u, r)
         r = {
             "user": user.username,
             "command": "USERLIST",
@@ -61,41 +68,6 @@ class Server:
         }
         for u in self.users:
             await self.send_obj(u, r)
-
-
-
-    async def part(self, user, chan):
-        # error if channel does not exist
-        if not chan in self.channels:
-            self.logger.info("{} tried to part {} that does not exist".format(user.username, chan))
-            await self.error(user, "that channel does not exist")
-            return
-
-        # remove user from channels
-        if user in self.channels[chan]:
-            self.channels[chan].remove(user)
-            self.logger.info("{} parted {}".format(user.username, chan))
-
-        # notify all users in chan
-        for member in self.channels[chan]:
-            r = {
-                    'user': user.username,
-                    'command': 'PART',
-                    'args': [chan]
-                    }
-            await self.send_obj(member, r)
-
-        # if channel is empty it is deleted
-        if len(self.channels[chan]) == 0:
-            del self.channels[chan]
-            self.logger.info("empty channel {} deleted".format(chan))
-            r = {
-                "user": user.username,
-                "command": "CHANLIST",
-                "args": [i for i in self.channels]
-            }
-            for member in self.users:
-                await self.send_obj(member, r)
 
     async def process_cmd(self, user, obj):
         """Process a json object from a user"""
@@ -295,7 +267,7 @@ class Server:
                 self.channels[chan].remove(user)
                 r = {
                     "user": user.username,
-                    "command": 'JOIN',
+                    "command": 'PART',
                     'args': [chan] + [u.username for u in self.channels[chan]]
                 }
                 for member in self.channels[chan]:
