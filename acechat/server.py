@@ -70,6 +70,13 @@ class Server:
         if len(self.channels[chan]) == 0:
             del self.channels[chan]
             self.logger.info("empty channel {} deleted".format(chan))
+            r = {
+                "user": user.username,
+                "command": "CHANLIST",
+                "args": [i for i in self.channels]
+            }
+            for member in self.users:
+                await self.send_obj(member, r)
 
     async def process_cmd(self, user, obj):
         """Process a json object from a user"""
@@ -275,6 +282,15 @@ class Server:
                 }
                 for member in self.channels[chan]:
                     await self.send_obj(member, r)
+                if len(self.channels[chan]) == 0:
+                    del self.channels[chan]
+                    r = {
+                        "user": user.username,
+                        "command": "CHANLIST",
+                        "args": [i for i in self.channels]
+                    }
+                    for member in self.users:
+                        await self.send_obj(member, r)
             else:
                 await self.error(user, "not in channel %s" % chan)
 
