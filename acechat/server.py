@@ -273,6 +273,15 @@ class Server:
                 }
                 for member in self.channels[chan]:
                     await self.send_obj(member, r)
+                if len(self.channels[chan]) == 0:
+                    del self.channels[chan]
+                    r = {
+                        "user": user.username,
+                        "command": "CHANLIST",
+                        "args": [i for i in self.channels]
+                    }
+                    for member in self.users:
+                        await self.send_obj(member, r)
             else:
                 await self.error(user, "not in channel %s" % chan)
 
