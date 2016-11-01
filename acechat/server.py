@@ -30,7 +30,7 @@ class Server:
                 self.logger.info("{} connection closed".format("User:{}".format(user.username) if user.username else "anonymous user"))
                 return
             # self.logger.info("<- {}".format(msg))
-            chalk.red("<- {}".format(msg))
+            chalk.red("<- {} {}".format(user.username, msg))
             obj = json.loads(msg)
             await self.process_cmd(user, obj)
 
@@ -153,6 +153,7 @@ class Server:
         }
         for member in self.users:
             await self.send_obj(member, r)
+            println("what")
 
     async def cmd_userlist(self, user, obj):
         """List all users on server
@@ -328,6 +329,6 @@ class Server:
         obj["timestamp"] = time.time();
         data = json.dumps(obj)
         # self.logger.info("-> {}".format(data))
-        chalk.green("-> {}".format(data))
+        chalk.green("-> {} {}".format(user.username, data))
         await conn.send(data)
 
