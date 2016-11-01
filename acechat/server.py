@@ -160,7 +160,6 @@ class Server:
         }
         for member in self.users:
             await self.send_obj(member, r)
-            println("what")
 
     async def cmd_userlist(self, user, obj):
         """List all users on server
