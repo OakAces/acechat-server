@@ -225,6 +225,8 @@ class Server:
                         }
                 for member in self.channels[chan]:
                     await self.send_obj(member, r)
+                for member in self.users:
+                    await self.send_obj(member, r)
             elif not (user in self.channels[chan]):
                 self.channels[chan].append(user)
                 r = {
