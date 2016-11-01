@@ -230,7 +230,7 @@ class Server:
                 r = {
                         "user": user.username,
                         "command": 'JOIN',
-                        'args': [chan] + self.channels[chan]
+                        'args': [chan] + [u.username for u in self.channels[chan]]
                         }
                 for member in self.channels[chan]:
                     await self.send_obj(member, r)
@@ -253,7 +253,7 @@ class Server:
                 r = {
                     "user": user.username,
                     "command": 'JOIN',
-                    'args': [chan] + self.channels[chan]
+                    'args': [chan] + [u.username for u in self.channels[chan]]
                 }
                 for member in self.channels[chan]:
                     await self.send_obj(member, r)
