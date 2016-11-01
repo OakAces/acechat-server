@@ -225,6 +225,11 @@ class Server:
                         }
                 for member in self.channels[chan]:
                     await self.send_obj(member, r)
+                r = {
+                    "user": user.username,
+                    "command": "CHANLIST",
+                    "args": [i for i in self.channels]
+                }
                 for member in self.users:
                     await self.send_obj(member, r)
             elif not (user in self.channels[chan]):
