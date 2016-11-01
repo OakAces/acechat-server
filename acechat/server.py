@@ -146,6 +146,14 @@ class Server:
         }
         await self.send_obj(user, r)
 
+        r = {
+            "user": uname,
+            "command": "USERLIST",
+            "args": [u.username for u in self.users]
+        }
+        for member in self.users:
+            await self.send_obj(member, r)
+
     async def cmd_userlist(self, user, obj):
         """List all users on server
         {
