@@ -305,7 +305,7 @@ class Server:
                     }
             for i in self.users:
                 if i.username == u:
-                    await self.send_obj(r)
+                    await self.send_obj(i, r)
 
     async def cmd_chanlist(self, user, obj):
         """List all channels on server
