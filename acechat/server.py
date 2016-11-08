@@ -224,6 +224,9 @@ class Server:
             assert i
 
         for chan in obj["args"]:
+            if len(chan) > 10:
+                await self.error(user, "channels must be 10 characters or less")
+                continue
             if not (chan in self.channels):
                 self.channels[chan] = [user]
                 r = {
