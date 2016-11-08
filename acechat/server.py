@@ -187,9 +187,10 @@ class Server:
                 "args": [chan,msg]
                 }
 
-        if user in self.channels[chan]:
-            for member in self.channels[chan]:
-                await self.send_obj(member, r)
+        if chan in self.channels:
+            if user in self.channels[chan]:
+                for member in self.channels[chan]:
+                    await self.send_obj(member, r)
 
     async def cmd_privmsg(self, user, obj):
         """Send a private message to another user
