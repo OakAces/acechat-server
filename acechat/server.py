@@ -30,7 +30,7 @@ class Server:
                 self.logger.info("{} connection closed".format("User:{}".format(user.username) if user.username else "anonymous user"))
                 return
             # self.logger.info("<- {}".format(msg))
-            chalk.red("<- {} {}".format(user.username, msg))
+            chalk.yellow("<- {} {}".format(user.username, msg))
             obj = json.loads(msg)
             await self.process_cmd(user, obj)
 
@@ -340,5 +340,8 @@ class Server:
         data = json.dumps(obj)
         # self.logger.info("-> {}".format(data))
         chalk.green("-> {} {}".format(user.username, data))
-        await conn.send(data)
+        try:
+            await conn.send(data)
+        except websockets.exceptions.ConnectionClosed as e:
+            chalk.red(e)
 
