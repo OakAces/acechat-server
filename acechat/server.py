@@ -30,7 +30,7 @@ class Server:
                 self.logger.info("{} connection closed".format("User:{}".format(user.username) if user.username else "anonymous user"))
                 return
             # self.logger.info("<- {}".format(msg))
-            chalk.yellow("<- {} {}".format(user.username, msg))
+            chalk.cyan("<- {} {}".format(user.username, msg))
             obj = json.loads(msg)
             await self.process_cmd(user, obj)
 
