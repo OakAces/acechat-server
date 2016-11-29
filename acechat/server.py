@@ -1,6 +1,5 @@
-import selectors
+import asyncio
 import json
-import socket
 import logging
 import websockets
 import re
@@ -22,6 +21,7 @@ class Server:
     async def handler(self, ws, path):
         user = User(ws, path)
         self.users.append(user)
+        reapT = asyncio.Task(self.reap(user))
         while True:
             try:
                 msg = await ws.recv()
@@ -33,6 +33,16 @@ class Server:
             chalk.cyan("<- {} {}".format(user.username, msg))
             obj = json.loads(msg)
             await self.process_cmd(user, obj)
+
+    async def reap(self, user):
+        while True:
+            await asyncio.sleep(60)
+            if not user.username is None:
+                await self.send_obj(user, {
+                    "user": user.username,
+                    "command": "PING",
+                    "args": []
+                    })
 
     async def disconnect_user(self, user):
         # remove from list of users
@@ -98,6 +108,8 @@ class Server:
             f = cmd_funcs.get(cmd, None)
             if f:
                 await f(user, obj)
+            elif cmd == 'PONG':
+                return
             else:
                 await self.error(user, "command %s does not exist" % cmd)
         except AssertionError as e:
