@@ -16,7 +16,6 @@ class Server:
 
         self.users = list()
         self.channels = dict()
-        self.umap = dict()
 
     async def handler(self, ws, path):
         user = User(ws, path)

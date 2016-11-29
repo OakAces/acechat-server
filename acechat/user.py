@@ -3,7 +3,6 @@ class User:
         """User class constructor"""
         self.path = ""
         self.username = ""
-        self.channels = list()
 
         self.path = path
         self.conn = conn
